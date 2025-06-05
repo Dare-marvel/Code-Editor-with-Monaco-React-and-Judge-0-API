@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Flex, Spinner, Textarea, Heading, VStack, HStack, Text, IconButton, Tooltip } from '@chakra-ui/react';
+import { Box, Button, Flex, Spinner, Textarea, Heading, VStack, HStack, Text, IconButton, Tooltip, Container, Spacer,ButtonGroup } from '@chakra-ui/react';
 import { AddIcon, DeleteIcon } from '@chakra-ui/icons';
 import Editor from "@monaco-editor/react";
 import Navbar from './Navbar';
 import axios from 'axios';
+import { FaPlay } from "react-icons/fa";
 // import compileCode from './compiling';
 import { boilerCodes } from "./constants/boilerCodes";
 import CodeOutput from './CodeOutput';
+import { CheckIcon } from '@chakra-ui/icons';
 
 import { checkStatus, submitCode } from './utils/SubmitCode';
 
@@ -106,7 +108,7 @@ function CodeEditor() {
         label: "JavaScript (Node.js 12.14.0)",
         value: "javascript",
     });
-    const [status,setStatus] = useState(null)
+    const [status, setStatus] = useState(null)
     const [userCode, setUserCode] = useState(boilerCodes(userLang.id));
     const [userTheme, setUserTheme] = useState("vs-dark");
     const [fontSize, setFontSize] = useState(20);
@@ -165,34 +167,34 @@ function CodeEditor() {
     //     }
     // };
 
-    const executeCode = async(input , exp_output) => {
+    const executeCode = async (input, exp_output) => {
         const formData = {
             language_id: userLang.id,
             source_code: btoa(userCode),
             stdin: btoa(input),
-            expected_output : btoa(exp_output)
+            expected_output: btoa(exp_output)
         }
 
         try {
             const { data } = await submitCode(formData)
             const { token } = data;
-            const {data: output, success, err}  = await checkStatus(token);
-            
-            if(success) {
+            const { data: output, success, err } = await checkStatus(token);
+
+            if (success) {
                 setUserOutput(output);
                 setStatus("Finished");
                 setLoading(false);
-            }else{
-              console.log(err);
-              setStatus("Error");
-              setLoading(false);
+            } else {
+                console.log(err);
+                setStatus("Error");
+                setLoading(false);
             }
-          }
-          catch(err){
+        }
+        catch (err) {
             let error = err.response ? err.response.data : err;
             console.log(error);
             setLoading(false);
-          }
+        }
     }
 
     const runAllTestCases = async () => {
@@ -209,7 +211,7 @@ function CodeEditor() {
 
         console.log(expectedOutput)
 
-        executeCode(combinedInput,expectedOutput)
+        executeCode(combinedInput, expectedOutput)
 
         // const formData = {
         //     language_id: userLang.id,
@@ -222,7 +224,7 @@ function CodeEditor() {
         //     const { data } = await submitCode(formData)
         //     const { token } = data;
         //     const {data: output, success, err}  = await checkStatus(token);
-            
+
         //     if(success) {
         //         setUserOutput(output);
         //         setStatus("Finished");
@@ -255,7 +257,7 @@ function CodeEditor() {
         // }
 
         // setUserOutput(allOutput);
-        
+
     };
 
     const runUserTestCases = async () => {
@@ -268,140 +270,361 @@ function CodeEditor() {
 
         let expectedOutput = testCases.map(testCase => testCase.expectedOutput).join("\n");
 
-        executeCode(combinedInput,expectedOutput);
+        executeCode(combinedInput, expectedOutput);
     };
 
     return (
-        <Box>
-            <Flex p={4}>
-                {/* Left panel: Problem description */}
-                <Box width="30%" pr={4}>
-                    <Heading size="md" mb={2}>{problem.name}</Heading>
-                    <Text mb={2}>{problem.description}</Text>
-                    <Text mb={2}>Examples:</Text>
-                    <Text mb={2} whiteSpace="pre-line">{problem.examples}</Text>
-                    <Text mb={2}>Constraints:</Text>
-                    <Text whiteSpace="pre-line">{problem.constraints}</Text>
-                </Box>
+        <Box bg="gray.50" minH="100vh">
+            <Container maxW="full" p={6}>
+                <Flex gap={6} minH="calc(100vh - 3rem)">
+                    {/* Left panel: Problem description */}
+                    <Box
+                        width="32%"
+                        bg="white"
+                        borderRadius="xl"
+                        shadow="lg"
+                        border="1px"
+                        borderColor="gray.200"
+                        overflow="hidden"
+                    >
+                        <Box bg="gradient-to-r from-blue.500 to-purple.600" p={4}>
+                            <Heading size="lg" color="black" fontWeight="bold">
+                                {problem.name}
+                            </Heading>
+                        </Box>
 
-                {/* Right panel: Code editor and I/O */}
-                <VStack width="70%" spacing={4}>
-                    {/* Language and theme selectors */}
-                    <HStack width="100%" justifyContent="space-between">
-                        <Navbar
-                            userTheme={userTheme} setUserTheme={setUserTheme}
-                            fontSize={fontSize} setFontSize={setFontSize}
-                            userLang={userLang} setUserLang={setUserLang}
-                        />
-                    </HStack>
-
-                    {/* Code editor */}
-                    <Box width="100%" height="400px">
-                        <Editor
-                            options={options}
-                            height="100%"
-                            width="100%"
-                            theme={userTheme}
-                            language={userLang.value}
-                            value={userCode}
-                            onChange={(value) => { setUserCode(value) }}
-                        />
-                    </Box>
-
-                    {/* Test Cases */}
-
-
-                    {/* Buttons */}
-                    <HStack width="100%" justifyContent="space-between">
-                        <Button colorScheme="teal" onClick={runAllTestCases}>Submit</Button>
-                        <Button colorScheme="blue" onClick={runUserTestCases}>Run</Button>
-                        <Button onClick={() => setActivePanel("input")} variant={activePanel === "input" ? "solid" : "outline"}>Input</Button>
-                        <Button onClick={() => setActivePanel("output")} variant={activePanel === "output" ? "solid" : "outline"}>Output</Button>
-                    </HStack>
-
-                    {/* Input/Output panel */}
-                    <Box width="100%" height="200px">
-                        {activePanel === "input" ? (
-
-                            <Box width="100%">
-                                <Heading size="sm" mb={2}>Test Cases</Heading>
-                                <HStack spacing={2} mb={2}>
-                                    {testCases.map((_, index) => (
-                                        <HStack
-                                            key={index} // Moved key here for proper rendering in the loop
-                                            onMouseEnter={() => setHoveredIndex(index)}
-                                            onMouseLeave={() => setHoveredIndex(null)}
-                                            position="relative"
-                                        >
-                                            <Button
-                                                size="sm"
-                                                colorScheme={selectedTestCase === index ? "blue" : "gray"}
-                                                onClick={() => setSelectedTestCase(index)}
-                                            >
-                                                Case {index + 1}
-                                            </Button>
-                                            {hoveredIndex === index && (
-                                                <IconButton
-                                                    icon={<DeleteIcon />}
-                                                    size="xs"
-                                                    onClick={() => deleteTestCase(index)}
-                                                    position="absolute"
-                                                    top="-10px"
-                                                    right="-10px"
-                                                />
-                                            )}
-                                        </HStack>
-                                    ))}
-                                    {testCases.length < 6 && (
-                                        <IconButton
-                                            icon={<AddIcon />}
-                                            size="sm"
-                                            onClick={addTestCase}
-                                            aria-label="Add Test Case"
-                                        />
-                                    )}
-                                </HStack>
-                                {testCases[selectedTestCase] && (
-                                    <Box borderWidth={1} borderRadius="md" p={4}>
-                                        <VStack spacing={2} align="stretch">
-                                            <Text fontSize="sm">Input:</Text>
-                                            <Textarea
-                                                value={testCases[selectedTestCase].input}
-                                                onChange={(e) => updateTestCase('input', e.target.value)}
-                                                size="sm"
-                                            />
-                                            <Text fontSize="sm">Expected Output:</Text>
-                                            <Textarea
-                                                value={testCases[selectedTestCase].expectedOutput}
-                                                onChange={(e) => updateTestCase('expectedOutput', e.target.value)}
-                                                size="sm"
-                                            />
-                                            <Tooltip label="Delete Test Case" placement="top-end">
-                                                <IconButton
-                                                    icon={<DeleteIcon />}
-                                                    size="sm"
-                                                    onClick={() => deleteTestCase(selectedTestCase)}
-                                                    alignSelf="flex-end"
-                                                />
-                                            </Tooltip>
-                                        </VStack>
-                                    </Box>
-                                )}
+                        <VStack p={6} align="stretch" spacing={5} h="calc(100% - 80px)" overflowY="auto">
+                            <Box>
+                                <Text fontSize="md" color="gray.700" lineHeight="1.6">
+                                    {problem.description}
+                                </Text>
                             </Box>
-                        ) : (
-                            loading ? (
-                                <Flex justify="center" align="center" height="100%">
-                                    <Spinner size="xl" />
-                                </Flex>
-                            ) : (
-                                <Box bg="black.100" p={4} borderRadius="md" height="100%" overflowY="auto">
-                                    <CodeOutput output={userOutput} status={status} />
+
+                            <Box>
+                                <Heading size="sm" mb={3} color="gray.800" fontWeight="semibold">
+                                    📝 Examples
+                                </Heading>
+                                <Box
+                                    bg="gray.50"
+                                    p={4}
+                                    borderRadius="lg"
+                                    border="1px"
+                                    borderColor="gray.200"
+                                >
+                                    <Text
+                                        whiteSpace="pre-line"
+                                        fontSize="sm"
+                                        fontFamily="mono"
+                                        color="gray.700"
+                                    >
+                                        {problem.examples}
+                                    </Text>
                                 </Box>
-                            )
-                        )}
+                            </Box>
+
+                            <Box>
+                                <Heading size="sm" mb={3} color="gray.800" fontWeight="semibold">
+                                    ⚡ Constraints
+                                </Heading>
+                                <Box
+                                    bg="yellow.50"
+                                    p={4}
+                                    borderRadius="lg"
+                                    border="1px"
+                                    borderColor="yellow.200"
+                                >
+                                    <Text
+                                        whiteSpace="pre-line"
+                                        fontSize="sm"
+                                        color="gray.700"
+                                    >
+                                        {problem.constraints}
+                                    </Text>
+                                </Box>
+                            </Box>
+                        </VStack>
                     </Box>
-                </VStack>
-            </Flex>
+
+                    {/* Right panel: Code editor and I/O */}
+                    <VStack width="68%" spacing={4}>
+                        {/* Header with controls */}
+                        <Box
+                            width="100%"
+                            bg="white"
+                            borderRadius="xl"
+                            shadow="md"
+                            border="1px"
+                            borderColor="gray.200"
+                            p={4}
+                        >
+                            <Navbar
+                                userTheme={userTheme}
+                                setUserTheme={setUserTheme}
+                                fontSize={fontSize}
+                                setFontSize={setFontSize}
+                                userLang={userLang}
+                                setUserLang={setUserLang}
+                            />
+                        </Box>
+
+                        {/* Code editor */}
+                        <Box
+                            width="100%"
+                            height="600px"
+                            bg="white"
+                            borderRadius="xl"
+                            shadow="md"
+                            border="1px"
+                            borderColor="gray.200"
+                            overflow="hidden"
+                            position="relative"
+                        >
+                            <Box
+                                bg="gray.800"
+                                px={4}
+                                py={2}
+                                borderBottom="1px"
+                                borderColor="gray.200"
+                            >
+                                <Flex align="center" gap={2}>
+                                    <Box w={3} h={3} borderRadius="full" bg="red.400" />
+                                    <Box w={3} h={3} borderRadius="full" bg="yellow.400" />
+                                    <Box w={3} h={3} borderRadius="full" bg="green.400" />
+                                    <Text ml={4} fontSize="sm" color="gray.300" fontWeight="medium">
+                                        Solution.{userLang.value}
+                                    </Text>
+                                </Flex>
+                            </Box>
+                            <Editor
+                                options={{
+                                    ...options,
+                                    padding: { top: 16, bottom: 16 }
+                                }}
+                                height="calc(100% - 48px)"
+                                width="100%"
+                                theme={userTheme}
+                                language={userLang.value}
+                                value={userCode}
+                                onChange={(value) => { setUserCode(value) }}
+                            />
+                        </Box>
+
+                        {/* Action buttons */}
+                        <HStack
+                            width="100%"
+                            spacing={3}
+                            bg="white"
+                            p={4}
+                            borderRadius="xl"
+                            shadow="md"
+                            border="1px"
+                            borderColor="gray.200"
+                        >
+                            <Button
+                                leftIcon={<CheckIcon />}
+                                colorScheme="green"
+                                onClick={runAllTestCases}
+                                size="md"
+                                fontWeight="semibold"
+                                _hover={{ transform: "translateY(-1px)", shadow: "lg" }}
+                                transition="all 0.2s"
+                            >
+                                Submit Solution
+                            </Button>
+
+                            <Button
+                                leftIcon={<FaPlay />}
+                                colorScheme="blue"
+                                onClick={runUserTestCases}
+                                size="md"
+                                fontWeight="semibold"
+                                _hover={{ transform: "translateY(-1px)", shadow: "lg" }}
+                                transition="all 0.2s"
+                            >
+                                Run Tests
+                            </Button>
+
+                            <Spacer />
+
+                            <ButtonGroup isAttached variant="outline">
+                                <Button
+                                    onClick={() => setActivePanel("input")}
+                                    bg={activePanel === "input" ? "blue.50" : "white"}
+                                    color={activePanel === "input" ? "blue.600" : "gray.600"}
+                                    borderColor={activePanel === "input" ? "blue.300" : "gray.300"}
+                                    fontWeight="medium"
+                                    _hover={{ bg: activePanel === "input" ? "blue.100" : "gray.50" }}
+                                >
+                                    Input
+                                </Button>
+                                <Button
+                                    onClick={() => setActivePanel("output")}
+                                    bg={activePanel === "output" ? "blue.50" : "white"}
+                                    color={activePanel === "output" ? "blue.600" : "gray.600"}
+                                    borderColor={activePanel === "output" ? "blue.300" : "gray.300"}
+                                    fontWeight="medium"
+                                    _hover={{ bg: activePanel === "output" ? "blue.100" : "gray.50" }}
+                                >
+                                    Output
+                                </Button>
+                            </ButtonGroup>
+                        </HStack>
+
+                        {/* Input/Output panel */}
+                        <Box
+                            width="100%"
+                            height="auto"
+                            minH="200px"
+                            bg="white"
+                            borderRadius="xl"
+                            shadow="md"
+                            border="1px"
+                            borderColor="gray.200"
+                            overflow="hidden"
+                        >
+                            {activePanel === "input" ? (
+                                <Box p={6} h="100%">
+                                    <Flex justify="space-between" align="center" mb={4}>
+                                        <Heading size="md" color="gray.800" fontWeight="semibold">
+                                            🧪 Test Cases
+                                        </Heading>
+                                        {testCases.length < 6 && (
+                                            <Button
+                                                leftIcon={<AddIcon />}
+                                                size="sm"
+                                                colorScheme="blue"
+                                                variant="ghost"
+                                                onClick={addTestCase}
+                                                _hover={{ bg: "blue.50" }}
+                                            >
+                                                Add Case
+                                            </Button>
+                                        )}
+                                    </Flex>
+
+                                    <HStack spacing={2} mb={4} flexWrap="wrap">
+                                        {testCases.map((_, index) => (
+                                            <Box
+                                                key={index}
+                                                position="relative"
+                                                onMouseEnter={() => setHoveredIndex(index)}
+                                                onMouseLeave={() => setHoveredIndex(null)}
+                                            >
+                                                <Button
+                                                    size="sm"
+                                                    bg={selectedTestCase === index ? "blue.500" : "gray.100"}
+                                                    color={selectedTestCase === index ? "white" : "gray.700"}
+                                                    onClick={() => setSelectedTestCase(index)}
+                                                    borderRadius="full"
+                                                    px={4}
+                                                    _hover={{
+                                                        transform: "translateY(-1px)",
+                                                        shadow: "md"
+                                                    }}
+                                                    transition="all 0.2s"
+                                                >
+                                                    Case {index + 1}
+                                                </Button>
+                                                {hoveredIndex === index && testCases.length > 1 && (
+                                                    <IconButton
+                                                        icon={<DeleteIcon />}
+                                                        size="xs"
+                                                        colorScheme="red"
+                                                        variant="solid"
+                                                        onClick={() => deleteTestCase(index)}
+                                                        position="absolute"
+                                                        top="-8px"
+                                                        right="-8px"
+                                                        borderRadius="full"
+                                                        shadow="md"
+                                                    />
+                                                )}
+                                            </Box>
+                                        ))}
+                                    </HStack>
+
+                                    {testCases[selectedTestCase] && (
+                                        <Box
+                                            borderWidth={1}
+                                            borderRadius="lg"
+                                            borderColor="gray.200"
+                                            bg="gray.50"
+                                            p={4}
+                                            h="calc(100% - 120px)"
+                                            overflowY="auto"
+                                        >
+                                            <VStack spacing={4} align="stretch">
+                                                <Box>
+                                                    <Text fontSize="sm" fontWeight="semibold" color="gray.700" mb={2}>
+                                                        📥 Input:
+                                                    </Text>
+                                                    <Textarea
+                                                        value={testCases[selectedTestCase].input}
+                                                        onChange={(e) => updateTestCase('input', e.target.value)}
+                                                        size="sm"
+                                                        borderRadius="md"
+                                                        bg="white"
+                                                        borderColor="gray.300"
+                                                        _focus={{ borderColor: "blue.400", shadow: "0 0 0 1px blue.400" }}
+                                                        fontFamily="mono"
+                                                        resize="vertical"
+                                                    />
+                                                </Box>
+                                                <Box>
+                                                    <Text fontSize="sm" fontWeight="semibold" color="gray.700" mb={2}>
+                                                        📤 Expected Output:
+                                                    </Text>
+                                                    <Textarea
+                                                        value={testCases[selectedTestCase].expectedOutput}
+                                                        onChange={(e) => updateTestCase('expectedOutput', e.target.value)}
+                                                        size="sm"
+                                                        borderRadius="md"
+                                                        bg="white"
+                                                        borderColor="gray.300"
+                                                        _focus={{ borderColor: "blue.400", shadow: "0 0 0 1px blue.400" }}
+                                                        fontFamily="mono"
+                                                        resize="vertical"
+                                                    />
+                                                </Box>
+                                            </VStack>
+                                        </Box>
+                                    )}
+                                </Box>
+                            ) : (
+                                loading ? (
+                                    <Flex justify="center" align="center" height="100%" flexDirection="column" gap={4}>
+                                        <Spinner size="xl" color="blue.500" thickness="4px" />
+                                        <Text color="gray.600" fontSize="sm">Running your code...</Text>
+                                    </Flex>
+                                ) : (
+                                    <Box
+                                        bg="gray.900"
+                                        p={6}
+                                        height="auto"
+                                        overflowY="auto"
+                                        position="relative"
+                                    >
+                                        <Box
+                                            position="absolute"
+                                            top={4}
+                                            right={4}
+                                            bg="gray.800"
+                                            px={3}
+                                            py={1}
+                                            borderRadius="full"
+                                        >
+                                            <Text fontSize="xs" color="gray.400" fontWeight="medium">
+                                                Console Output
+                                            </Text>
+                                        </Box>
+                                        <CodeOutput output={userOutput} status={status} />
+                                    </Box>
+                                )
+                            )}
+                        </Box>
+                    </VStack>
+                </Flex>
+            </Container>
         </Box>
     );
 }

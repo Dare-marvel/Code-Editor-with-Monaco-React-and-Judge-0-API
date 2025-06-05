@@ -3,7 +3,7 @@ import { Box, Button, Flex, Spinner, Textarea, Heading, VStack, HStack, Text, Ic
 import { AddIcon, DeleteIcon } from '@chakra-ui/icons';
 import Editor from "@monaco-editor/react";
 import Navbar from './Navbar';
-import axios from 'axios';
+// import axios from 'axios';
 import { FaPlay } from "react-icons/fa";
 // import compileCode from './compiling';
 import { boilerCodes } from "./constants/boilerCodes";
@@ -120,7 +120,7 @@ function CodeEditor() {
     const [userOutput, setUserOutput] = useState("");
     const [loading, setLoading] = useState(false);
     const [activePanel, setActivePanel] = useState("input");
-    const [isHovered, setIsHovered] = useState(false);
+    // const [isHovered, setIsHovered] = useState(false);
     const [hoveredIndex, setHoveredIndex] = useState(null);
 
     const options = {

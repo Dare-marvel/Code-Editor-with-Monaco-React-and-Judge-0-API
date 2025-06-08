@@ -19,4 +19,5 @@ A powerful, feature-rich code editor designed for seamless development and testi
 
 Perfect for developers, competitive programmers, and educators seeking a smooth coding experience with integrated execution and testing capabilities.
 
+## Steps to deploy the backend locally 
 ### [Deploying Judge0 Locally](https://denishoti.medium.com/how-to-self-host-judge0-api-on-your-pc-locally-all-you-need-to-know-ad8a2b64fd1)

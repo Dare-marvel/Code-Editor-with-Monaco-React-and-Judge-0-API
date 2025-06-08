@@ -1,5 +1,9 @@
 # 🔥 Code Editor with Monaco Editor and Judge 0 API
 
+## Project Demo
+
+[![Watch the video](https://img.youtube.com/vi/QOmc3u1Aev8/maxresdefault.jpg)](https://youtu.be/QOmc3u1Aev8)
+
 A powerful, feature-rich code editor designed for seamless development and testing.
 
 ## ✨ Features
